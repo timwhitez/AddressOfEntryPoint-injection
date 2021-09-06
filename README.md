@@ -1,4 +1,4 @@
 # AddressOfEntryPoint-injection
-x64 version
+x64 version of https://www.ired.team/offensive-security/code-injection-process-injection/addressofentrypoint-code-injection-without-virtualallocex-rwx
 
-calc pop success
+Pop calc.exe success
