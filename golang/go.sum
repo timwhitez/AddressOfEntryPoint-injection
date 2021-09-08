@@ -1,0 +1,4 @@
+github.com/soyum2222/editPE v0.0.0-20210624070249-c6fb60af2160 h1:4qLL5A+f9VE4R7H5viRlBI/ax/oxkLsphN2grtAaLFY=
+github.com/soyum2222/editPE v0.0.0-20210624070249-c6fb60af2160/go.mod h1:++uT61R9lWv7RD8YmtMk76ck2N9FYhRkgah3bmHkSBU=
+golang.org/x/sys v0.0.0-20210906170528-6f6e22806c34 h1:GkvMjFtXUmahfDtashnc1mnrCtuBVcwse5QV2lUk/tI=
+golang.org/x/sys v0.0.0-20210906170528-6f6e22806c34/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
